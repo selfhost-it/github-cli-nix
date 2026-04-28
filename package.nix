@@ -16,7 +16,13 @@
 }:
 
 let
-  version = "2.91.0";
+  # PINNED to the last 2.87.x release. gh 2.88.0+ bumps go.mod to
+  # `go 1.26.1`, which is not available in nixos-25.11 stable (ships
+  # Go 1.25.8). With GOTOOLCHAIN=local enforced inside the Nix sandbox,
+  # building 2.88.0+ against a stable nixpkgs fails with:
+  #   go: go.mod requires go >= 1.26.1 (running go 1.25.8; GOTOOLCHAIN=local)
+  # Bump back to "latest" once Go 1.26 lands in nixpkgs stable.
+  version = "2.87.3";
 in
 buildGoModule {
   pname = "gh";
@@ -26,10 +32,10 @@ buildGoModule {
     owner = "cli";
     repo = "cli";
     rev = "v${version}";
-    hash = "sha256-2ggQd2sCybdtNGwiP7+GqB1CwZDNA/bDq24NC5btNFU=";
+    hash = "sha256-F4xUwj/krB5vjIfnvmwySlztBrcxJ+k1GvXb2gs7eXY=";
   };
 
-  vendorHash = "sha256-4xZAcwn9/vUTkahIlqwyGb/2SYYGusdXY4nye8ldp/g=";
+  vendorHash = "sha256-POrm4lHEO2Eti7dbohKBwXW+DTs22EUZX+tMNUCL3lg=";
 
   nativeBuildInputs = [ installShellFiles ];
 

@@ -16,15 +16,33 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 PROMPT=$(cat <<'EOF'
-Update github-cli-nix to the latest upstream release.
+Update github-cli-nix to the latest upstream release that is still compatible
+with the Go version shipped by nixos stable.
 
-1. Check the latest release tag:
-   curl -s "https://api.github.com/repos/cli/cli/releases/latest" \
-     | jq -r '.tag_name'
-   Do NOT use `gh` to query its own repo — it may not be authenticated and we are
-   bootstrapping the package itself.
+CONTEXT — Go floor:
+  This flake is consumed by NixOS configurations pinned to nixos stable
+  (currently 25.11, which ships Go 1.25.8). The Nix sandbox enforces
+  GOTOOLCHAIN=local, so a tag whose go.mod requires Go > 1.25 will fail to
+  build on consumers. This is why the package is currently pinned to v2.87.3
+  (the last 2.87.x release; gh 2.88.0+ requires go 1.26.1).
+  Once Go 1.26 lands in nixos stable, this floor can be lifted.
 
-2. Compare with the current `version` in `package.nix` — if already up to date, stop.
+1. Determine the candidate tag:
+   a. Fetch the latest release tag:
+        LATEST=$(curl -s "https://api.github.com/repos/cli/cli/releases/latest" | jq -r '.tag_name')
+   b. Read its go.mod:
+        GOREQ=$(curl -fsSL "https://raw.githubusercontent.com/cli/cli/${LATEST}/go.mod" | awk '/^go [0-9]/ {print $2; exit}')
+   c. If GOREQ starts with "1.25" (or lower), the candidate is LATEST — proceed
+      with that. If GOREQ is "1.26" or higher, walk back through recent tags
+      (curl "https://api.github.com/repos/cli/cli/releases?per_page=30") and
+      pick the most recent tag whose go.mod still declares "go 1.25" or lower.
+      As of writing, that ceiling is v2.87.3.
+   d. Do NOT use `gh` to query its own repo — it may not be authenticated and
+      we are bootstrapping the package itself.
+
+2. Compare the chosen candidate with the current `version` in `package.nix`.
+   If already at the candidate, stop and print "GitHub CLI is up to date
+   (Go floor in effect: pinned to v<VERSION>)".
 
 3. Update `package.nix`:
    a. Set `version` to the new value (without leading `v`).

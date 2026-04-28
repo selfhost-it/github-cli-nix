@@ -8,9 +8,19 @@ Always up-to-date Nix package for [GitHub CLI](https://github.com/cli/cli) (`gh`
 
 `gh` is already in nixpkgs, but the version there can lag behind upstream by days or weeks. This flake lets you:
 
-1. **Always have the latest version** — update as soon as a new release drops
+1. **Get newer versions sooner** — update as soon as a compatible release drops
 2. **Declarative installation** — managed in your NixOS or Home Manager config
 3. **Reproducible builds** — built from source via `buildGoModule`
+
+## Currently pinned to gh 2.87.3
+
+Upstream `cli/cli` 2.88.0 (and later) bumped `go.mod` to `go 1.26.1`. The current `nixos-25.11` stable channel ships **Go 1.25.8**, and the Nix sandbox enforces `GOTOOLCHAIN=local`, so building 2.88.0+ against a stable nixpkgs fails with:
+
+```
+go: go.mod requires go >= 1.26.1 (running go 1.25.8; GOTOOLCHAIN=local)
+```
+
+To stay buildable on stable, this flake is therefore **pinned to `v2.87.3`** — the last patch of the `2.87.x` line, which still uses `go 1.25.7`. The pin will be bumped back to "latest" as soon as Go 1.26 lands in nixpkgs stable. In the meantime, the autonomous `update.sh` is aware of this constraint and will refuse to bump past the Go floor.
 
 ## Project Structure
 
