@@ -21,22 +21,21 @@ with the Go version shipped by nixos stable.
 
 CONTEXT — Go floor:
   This flake is consumed by NixOS configurations pinned to nixos stable
-  (currently 25.11, which ships Go 1.25.8). The Nix sandbox enforces
-  GOTOOLCHAIN=local, so a tag whose go.mod requires Go > 1.25 will fail to
-  build on consumers. This is why the package is currently pinned to v2.87.3
-  (the last 2.87.x release; gh 2.88.0+ requires go 1.26.1).
-  Once Go 1.26 lands in nixos stable, this floor can be lifted.
+  (currently 26.05, which ships Go 1.26.3). The Nix sandbox enforces
+  GOTOOLCHAIN=local, so a tag whose go.mod requires a Go newer than stable's
+  will fail to build on consumers. Verify the actual stable Go version before
+  walking back — when a new NixOS release ships a newer Go, the floor moves
+  (this is how the old v2.87.3 pin from the 25.11/Go 1.25.8 era was lifted).
 
 1. Determine the candidate tag:
    a. Fetch the latest release tag:
         LATEST=$(curl -s "https://api.github.com/repos/cli/cli/releases/latest" | jq -r '.tag_name')
-   b. Read its go.mod:
-        GOREQ=$(curl -fsSL "https://raw.githubusercontent.com/cli/cli/${LATEST}/go.mod" | awk '/^go [0-9]/ {print $2; exit}')
-   c. If GOREQ starts with "1.25" (or lower), the candidate is LATEST — proceed
-      with that. If GOREQ is "1.26" or higher, walk back through recent tags
+   b. Read its go.mod (awk may be missing on this host; use grep/cut):
+        GOREQ=$(curl -fsSL "https://raw.githubusercontent.com/cli/cli/${LATEST}/go.mod" | grep -m1 '^go ' | cut -d' ' -f2)
+   c. If GOREQ is satisfied by stable's Go (currently 1.26.x), the candidate
+      is LATEST — proceed with that. Otherwise walk back through recent tags
       (curl "https://api.github.com/repos/cli/cli/releases?per_page=30") and
-      pick the most recent tag whose go.mod still declares "go 1.25" or lower.
-      As of writing, that ceiling is v2.87.3.
+      pick the most recent tag whose go.mod requirement stable's Go satisfies.
    d. Do NOT use `gh` to query its own repo — it may not be authenticated and
       we are bootstrapping the package itself.
 

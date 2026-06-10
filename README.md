@@ -12,15 +12,11 @@ Always up-to-date Nix package for [GitHub CLI](https://github.com/cli/cli) (`gh`
 2. **Declarative installation** — managed in your NixOS or Home Manager config
 3. **Reproducible builds** — built from source via `buildGoModule`
 
-## Currently pinned to gh 2.87.3
+## Go floor
 
-Upstream `cli/cli` 2.88.0 (and later) bumped `go.mod` to `go 1.26.1`. The current `nixos-25.11` stable channel ships **Go 1.25.8**, and the Nix sandbox enforces `GOTOOLCHAIN=local`, so building 2.88.0+ against a stable nixpkgs fails with:
+The Nix sandbox enforces `GOTOOLCHAIN=local`, so a `gh` tag is only buildable if its `go.mod` requirement is satisfied by the Go shipped in the **nixos stable** channel (what downstream consumers using `inputs.nixpkgs.follows` build with). This flake therefore tracks the latest upstream release that fits under that floor — usually simply the latest release.
 
-```
-go: go.mod requires go >= 1.26.1 (running go 1.25.8; GOTOOLCHAIN=local)
-```
-
-To stay buildable on stable, this flake is therefore **pinned to `v2.87.3`** — the last patch of the `2.87.x` line, which still uses `go 1.25.7`. The pin will be bumped back to "latest" as soon as Go 1.26 lands in nixpkgs stable. In the meantime, the autonomous `update.sh` is aware of this constraint and will refuse to bump past the Go floor.
+> History: while `nixos-25.11` (Go 1.25.x) was stable, the flake was pinned to `v2.87.3` because `cli/cli` 2.88.0+ requires `go 1.26`. The pin was lifted in June 2026 when `nixos-26.05` (Go 1.26.3) became the stable channel. The autonomous `update.sh` is floor-aware and will re-pin automatically if upstream's Go requirement ever outruns stable again.
 
 ## Project Structure
 
