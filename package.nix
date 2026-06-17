@@ -19,9 +19,9 @@ let
   # Go floor: consumers build against nixos stable, and GOTOOLCHAIN=local
   # inside the Nix sandbox makes that Go version a hard ceiling for the
   # `go` directive in the candidate tag's go.mod. nixos-26.05 ships
-  # Go 1.26.3, which satisfies v2.94.0's `go 1.26.0` — the v2.87.3 pin
+  # Go 1.26.3, which satisfies v2.95.0's `go 1.26.0` — the v2.87.3 pin
   # (needed while 25.11 stable was on Go 1.25.8) is lifted.
-  version = "2.94.0";
+  version = "2.95.0";
 in
 buildGoModule {
   pname = "gh";
@@ -31,10 +31,10 @@ buildGoModule {
     owner = "cli";
     repo = "cli";
     rev = "v${version}";
-    hash = "sha256-wv9hMep8dDKKpqzNI5We6KThOFX82ppzvkoGyhY21pk=";
+    hash = "sha256-Hzdod8dJuwFv3mNa4Nflqf8uy45RpoeO93sFSMq3D5E=";
   };
 
-  vendorHash = "sha256-sRpHQTJNDPVe1jaLO9zMqtIMDE6JQB3vUL7AMxlcnJA=";
+  vendorHash = "sha256-tqbo791t7phe6ip5UzBiLer0rGcKqpKGF0bqwxr3j78=";
 
   nativeBuildInputs = [ installShellFiles ];
 
